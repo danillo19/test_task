@@ -45,8 +45,8 @@ $ java -jar target/backend-0.0.1-SNAPSHOT.jar
 Spring boot aplication has been started on port `8080` (you can specify it in `application.properties`)
 
 ### Start the frontend
+In another terminal :)
 ```
-$ cd ..
 $ cd frontend
 $ npm install
 $ npm run start
