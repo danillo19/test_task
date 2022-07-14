@@ -1,11 +1,11 @@
 # test_task
 Simple React + Spring web app.
 # Table of contents
-- [Introduction](https://github.com/danillo19/test_task/new/master?#introduction)
-- [Requirements](https://github.com/danillo19/test_task/new/master?#requirements)
-- [Quick start](https://github.com/danillo19/test_task/new/master?#quick-start)
-- [How to work with it](https://github.com/danillo19/test_task/new/master?#how-to-work-with-it)
-- [Screenshots](https://github.com/danillo19/test_task/new/master?#screenshots)
+- [Introduction](https://github.com/danillo19/test_task/blob/master/README.md#introduction)
+- [Requirements](https://github.com/danillo19/test_task/blob/master/README.md#requirements)
+- [Quick start](https://github.com/danillo19/test_task/blob/master/README.md#quick-start)
+- [How to work with it](https://github.com/danillo19/test_task/blob/master/README.md#how-to-work-with-it)
+- [Screenshots](https://github.com/danillo19/test_task/blob/master/README.md#screenshots)
 
 ## Introduction
 Simple React + Spring Boot + MySQL (inside docker container) web application, where you can create/update/delete/get banners/categories and search by their names.
