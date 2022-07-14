@@ -30,7 +30,11 @@ Start container with environment arguments.
 ```
 $  docker run -d --name <container_id> -p 3306:3306 -e MYSQL_ROOT_PASSWORD=<password> -e MYSQL_DATABASE=<db_name> test:latest
 ```
+By default app works with `MYSQL_ROOT_PASSWORD=secret` and `MYSQL_DATABASE=mySchema`. If you change it, don't forget to change them in `application.properties` too.
 MySql database started on port `3306` (you can specify external port :)).
+```
+ $ docker run -d --name test_task -p 3306:3306 -e MYSQL_ROOT_PASSWORD=secret -e MYSQL_DATABASE=mySchema test_task:latest
+```
 
 ### Start the backend
 (inside backend directory)
