@@ -61,7 +61,7 @@ begin
     declare unique_name varchar(40);
     declare b boolean default 0;
     declare unique_name_cur cursor for
-        Select name from banners where deleted = false and NEW.name = name and NEW.id != banner;
+        Select name from banners where deleted = false and NEW.name = name and NEW.id != banners.id;
     DECLARE EXIT HANDLER FOR NOT FOUND Set b = 1;
     open unique_name_cur;
     repeat
