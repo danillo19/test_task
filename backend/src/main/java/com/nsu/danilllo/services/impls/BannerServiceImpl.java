@@ -1,7 +1,10 @@
 package com.nsu.danilllo.services.impls;
 
+import com.nsu.danilllo.controllers.dto.BannerDto;
+import com.nsu.danilllo.controllers.mappers.BannerMapper;
 import com.nsu.danilllo.controllers.requests.BannerRequest;
 import com.nsu.danilllo.model.Banner;
+import com.nsu.danilllo.model.NoContentReason;
 import com.nsu.danilllo.repositories.BannerRepository;
 import com.nsu.danilllo.model.Category;
 import com.nsu.danilllo.repositories.CategoryRepository;
@@ -35,13 +38,7 @@ public class BannerServiceImpl implements BannerService {
         banner.setName(bannerRequest.getName());
         banner.setPrice(bannerRequest.getPrice());
         banner.setText(bannerRequest.getText());
-        banner.setCategories(
-                bannerRequest.getCategoriesIDs().stream().
-                        map(
-                                (i) -> categoryRepository.findByIdAndDeletedFalse((i)).
-                                        orElseThrow(() -> new NoSuchElementException("Bad id for category"))
-                        ).collect(Collectors.toList())
-        );
+        banner.setCategories(getCategoriesFromRequest(bannerRequest));
 
         bannerRepository.save(banner);
 
@@ -58,12 +55,7 @@ public class BannerServiceImpl implements BannerService {
         banner.setName(bannerRequest.getName());
         banner.setText(bannerRequest.getText());
         banner.setPrice(bannerRequest.getPrice());
-        banner.setCategories(
-                bannerRequest.getCategoriesIDs().stream().
-                        map(
-                                (i) -> categoryRepository.findByIdAndDeletedFalse((i)).
-                                        orElseThrow(() -> new NoSuchElementException("Bad id for category"))
-                        ).collect(Collectors.toList()));
+        banner.setCategories(getCategoriesFromRequest(bannerRequest));
         bannerRepository.save(banner);
 
         return banner.getId();
@@ -82,8 +74,13 @@ public class BannerServiceImpl implements BannerService {
 
         List<Category> requestedCategories = getCategoriesByRequests(requestIds);
         TreeSet<Banner> acceptableBanners = getBannersByCategories(requestedCategories);
-        Banner chosenBanner = getNotShownBanner(logService.getLastShownBanner(request, timeZone), acceptableBanners);
-        logService.saveLog(chosenBanner, requestedCategories, request);
+        List<Banner> todayShownBanners = logService.getLastShownBanners(request, timeZone);
+        Banner chosenBanner = null;
+        for (Banner banner : acceptableBanners) {
+            if (!todayShownBanners.contains(banner)) chosenBanner = banner;
+        }
+        NoContentReason reason = logService.getNoContentReason(chosenBanner, acceptableBanners);
+        logService.saveLog(chosenBanner, requestedCategories, request, reason);
         return chosenBanner;
 
     }
@@ -92,8 +89,8 @@ public class BannerServiceImpl implements BannerService {
         return bannerRepository.findById(id).orElseThrow(() -> new NoSuchElementException("No banner with such id"));
     }
 
-    public List<Banner> findBannersByNamePart(String namePart) {
-        return bannerRepository.findBannersByName(namePart);
+    public List<BannerDto> findBannersByNamePart(String namePart) {
+        return bannerRepository.findBannersByName(namePart).stream().map(BannerMapper::toDto).collect(Collectors.toList());
     }
 
     private boolean isAnotherBannerWithSuchNameExists(Banner banner, String name) {
@@ -121,11 +118,12 @@ public class BannerServiceImpl implements BannerService {
         return acceptableBanners;
     }
 
-    private Banner getNotShownBanner(Banner lastShown, TreeSet<Banner> acceptableBanners) {
-        if (acceptableBanners.isEmpty()) return null;
-        Banner withBestPrice = acceptableBanners.last();
-
-        return lastShown != withBestPrice ? withBestPrice : acceptableBanners.lower(withBestPrice);
+    private List<Category> getCategoriesFromRequest(BannerRequest bannerRequest) {
+        List<Category> categories = bannerRequest.getCategoriesIDs().stream().
+                map((i) -> categoryRepository.findByIdAndDeletedFalse((i)).
+                        orElseThrow(() -> new NoSuchElementException("Bad id for category")))
+                .collect(Collectors.toList());
+        if (categories.isEmpty()) throw new NoSuchElementException("Categories list is empty");
+        return categories;
     }
-
 }

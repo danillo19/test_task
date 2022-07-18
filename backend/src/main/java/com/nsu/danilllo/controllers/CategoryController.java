@@ -3,14 +3,15 @@ package com.nsu.danilllo.controllers;
 
 import com.nsu.danilllo.controllers.requests.CategoryRequest;
 import com.nsu.danilllo.exceptions.CategoryIsLinkedException;
-import com.nsu.danilllo.exceptions.NoEntityException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.nsu.danilllo.services.impls.CategoryServiceImpl;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.persistence.EntityExistsException;
+import javax.validation.Valid;
 import java.util.NoSuchElementException;
 
 @RestController
@@ -24,44 +25,39 @@ public class CategoryController {
     }
 
     @PostMapping("/create")
-    public ResponseEntity<?> createCategory(@RequestBody CategoryRequest request) {
+    public ResponseEntity<?> createCategory(@Valid @RequestBody CategoryRequest request) {
         try {
             Long id = categoryService.createCategory(request);
             return new ResponseEntity<>(id, HttpStatus.OK);
         } catch (EntityExistsException exception) {
-            //TODO:add logs.
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,exception.getMessage());
         }
     }
 
     @PostMapping("/delete")
-    public ResponseEntity<?> deleteCategory(@RequestParam(required = true) Long id) {
+    public ResponseEntity<?> deleteCategory(@Valid @RequestParam(required = true) Long id) {
         try {
             categoryService.deleteCategory(id);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (NoEntityException | CategoryIsLinkedException exception) {
+        } catch (NoSuchElementException | CategoryIsLinkedException exception) {
             exception.printStackTrace();
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,exception.getMessage());
         }
     }
 
     @PostMapping("/update")
-    public ResponseEntity<?> updateCategory(@RequestBody CategoryRequest request, @RequestParam(required = true) Long id) {
+    public ResponseEntity<?> updateCategory(@Valid @RequestBody CategoryRequest request, @RequestParam(required = true) Long id) {
         try {
             Long updatedId = categoryService.updateCategory(request, id);
             return new ResponseEntity<>(updatedId, HttpStatus.OK);
-        } catch (NoEntityException | EntityExistsException exception) {
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
+        } catch (NoSuchElementException | EntityExistsException exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,exception.getMessage());
         }
     }
 
     @GetMapping("/get")
     public ResponseEntity<?> getCategoryById(@RequestParam(required = true) Long id) {
-        try {
-            return new ResponseEntity<>(categoryService.getById(id), HttpStatus.OK);
-        } catch (NoSuchElementException exception) {
-            return new ResponseEntity<>(exception.getMessage(), HttpStatus.CONFLICT);
-        }
+        return new ResponseEntity<>(categoryService.getById(id), HttpStatus.OK);
     }
 
     @GetMapping("/search")

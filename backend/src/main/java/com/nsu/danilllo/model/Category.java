@@ -7,7 +7,7 @@ import lombok.Setter;
 import javax.persistence.*;
 
 @Entity
-@Table(name = "Categories")
+@Table(name = "categories")
 @Getter
 @Setter
 public class Category {
@@ -15,9 +15,8 @@ public class Category {
     @Setter(AccessLevel.NONE)
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @Column(unique = true)
     private String name;
-    @Column(unique = true)
+    @Column(name = "requestID")
     private String requestedID;
     private boolean deleted = Boolean.FALSE;
 

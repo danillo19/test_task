@@ -16,7 +16,7 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
     Optional<Category> findByRequestedIDAndDeletedFalse(String requestID);
 
     @Query(value = "Select c from Category c where (c.requestedID = :requestedId or c.name = :name) and c.deleted = false")
-    Optional<Category> findCategoryByRequestedIdOrName(@Param("requestedId") String requestedID, @Param("name") String name);
+    List<Category> findCategoryByRequestedIdOrName(@Param("requestedId") String requestedID, @Param("name") String name);
 
     @Query(value = "Select c from Category  c where c.name like %:namePart% and c.deleted = false")
     List<Category> findCategoriesByName(@Param("namePart") String namePart);

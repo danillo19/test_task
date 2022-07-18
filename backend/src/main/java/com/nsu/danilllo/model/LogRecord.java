@@ -24,5 +24,6 @@ public class LogRecord {
     private Banner selectedBanner;
     @ManyToMany
     private List<Category> selectedCategories;
+    private Double selectedBannerPrice;
     private String reason;
 }

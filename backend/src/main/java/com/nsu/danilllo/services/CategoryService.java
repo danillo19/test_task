@@ -1,6 +1,8 @@
 package com.nsu.danilllo.services;
 
+import com.nsu.danilllo.controllers.dto.CategoryDto;
 import com.nsu.danilllo.controllers.requests.CategoryRequest;
+import com.nsu.danilllo.exceptions.CategoryIsLinkedException;
 import com.nsu.danilllo.model.Category;
 
 import java.util.List;
@@ -17,7 +19,7 @@ public interface CategoryService {
      *
      * @param id - идентификатор удаляемой(soft-delete) категории
      */
-    public void deleteCategory(Long id);
+    public void deleteCategory(Long id) throws CategoryIsLinkedException;
 
     /***
      *
@@ -34,5 +36,5 @@ public interface CategoryService {
      * @param namePart - шаблон поиска имени категории
      * @return - список подходящих категорий
      */
-    public List<Category> findByNamePart(String namePart);
+    public List<CategoryDto> findByNamePart(String namePart);
 }

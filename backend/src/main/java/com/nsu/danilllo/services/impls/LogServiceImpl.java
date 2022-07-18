@@ -12,7 +12,9 @@ import org.springframework.stereotype.Service;
 import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 @Service
 public class LogServiceImpl implements LogService {
@@ -24,18 +26,22 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public void saveLog(Banner banner, List<Category> requestedCategories, HttpServletRequest request) {
+    public void saveLog(Banner banner, List<Category> requestedCategories, HttpServletRequest request,
+                        NoContentReason reason) {
         LogRecord logRecord = new LogRecord();
         logRecord.setIp(request.getRemoteAddr());
         logRecord.setUserAgent(request.getHeader("User-Agent"));
         logRecord.setSelectedBanner(banner);
         logRecord.setSelectedCategories(requestedCategories);
-        logRecord.setRequestedAt(new Date());
-        if(requestedCategories.isEmpty() && banner == null) {
-            logRecord.setReason(NoContentReason.NO_CONTENT_BY_REQUEST.name());
+        if(banner != null) {
+            logRecord.setSelectedBannerPrice(banner.getPrice());
         }
-        else if (!requestedCategories.isEmpty() && banner == null){
-             logRecord.setReason(NoContentReason.ONLY_ONE_EXISTED_BANNER_ALREADY_SHOWN.name());
+        else {
+            logRecord.setSelectedBannerPrice(null);
+        }
+        logRecord.setRequestedAt(new Date());
+        if(reason != null) {
+            logRecord.setReason(reason.toString());
         }
         else {
             logRecord.setReason(null);
@@ -45,11 +51,19 @@ public class LogServiceImpl implements LogService {
     }
 
     @Override
-    public Banner getLastShownBanner(HttpServletRequest request, TimeZone timeZone) {
+    public List<Banner> getLastShownBanners(HttpServletRequest request, TimeZone timeZone) {
         String userAgent = request.getHeader("User-Agent");
         String ip = request.getRemoteAddr();
-        List<LogRecord> todayUserHistory = logRepository.findAllTodayLogsRecordByUserAgentAndIp(userAgent,ip,timeZone.getID());
-        if(todayUserHistory.isEmpty()) return null;
-        return todayUserHistory.get(0).getSelectedBanner();
+        List<LogRecord> todayUserHistory = logRepository.findAllTodayLogsRecordByUserAgentAndIp(userAgent, ip, timeZone.getID());
+        return todayUserHistory.stream().map(LogRecord::getSelectedBanner).collect(Collectors.toList());
+    }
+
+
+    @Override
+    public NoContentReason getNoContentReason(Banner chosenBanner, Set<Banner> acceptableBannersByRequest) {
+        if(chosenBanner != null) return null;
+
+        if(acceptableBannersByRequest.isEmpty()) return NoContentReason.NO_CONTENT_BY_REQUEST;
+        else return NoContentReason.ALL_CONTENT_ALREADY_SHOWN;
     }
 }

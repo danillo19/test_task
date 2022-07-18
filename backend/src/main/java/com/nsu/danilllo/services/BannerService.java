@@ -1,5 +1,6 @@
 package com.nsu.danilllo.services;
 
+import com.nsu.danilllo.controllers.dto.BannerDto;
 import com.nsu.danilllo.controllers.requests.BannerRequest;
 import com.nsu.danilllo.model.Banner;
 
@@ -41,5 +42,5 @@ public interface BannerService {
      * @param namePart - шаблон поиска именни баннера
      * @return - список подходящих баннеров
      */
-    List<Banner> findBannersByNamePart(String namePart);
+    List<BannerDto> findBannersByNamePart(String namePart);
 }

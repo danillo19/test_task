@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "Banners")
+@Table(name = "banners" )
 @Getter
 @Setter
 public class Banner implements Comparable<Banner> {
@@ -18,8 +18,6 @@ public class Banner implements Comparable<Banner> {
     @Setter(AccessLevel.NONE)
     @GeneratedValue(strategy= GenerationType.AUTO)
     private Long id;
-
-    @Column(unique = true)
     private String name;
     private String text;
     private Double price;
@@ -29,7 +27,7 @@ public class Banner implements Comparable<Banner> {
 
     @Override
     public int compareTo(Banner o) {
-        if(Objects.equals(name, o.getName()) && Objects.equals(text, o.getText())) return 0;
+        if(Objects.equals(this,o)) return 0;
         return price >= o.getPrice() ? 1 : -1;
     }
 }

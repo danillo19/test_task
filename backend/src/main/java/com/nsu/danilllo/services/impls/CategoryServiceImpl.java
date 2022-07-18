@@ -1,20 +1,23 @@
 package com.nsu.danilllo.services.impls;
 
+import com.nsu.danilllo.controllers.dto.CategoryDto;
+import com.nsu.danilllo.controllers.mappers.CategoryMapper;
 import com.nsu.danilllo.repositories.BannerRepository;
 import com.nsu.danilllo.controllers.requests.CategoryRequest;
 import com.nsu.danilllo.exceptions.CategoryIsLinkedException;
-import com.nsu.danilllo.exceptions.NoEntityException;
 import com.nsu.danilllo.model.Category;
 import com.nsu.danilllo.repositories.CategoryRepository;
+import com.nsu.danilllo.services.CategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityExistsException;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
-public class CategoryServiceImpl {
+public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final BannerRepository bannerRepository;
 
@@ -25,9 +28,8 @@ public class CategoryServiceImpl {
     }
 
     public Long createCategory(CategoryRequest createRequest) throws EntityExistsException {
-        if (categoryRepository.findCategoryByRequestedIdOrName(
-                createRequest.getRequestedID(), createRequest.getName()).isPresent()) {
-            throw new EntityExistsException("Category already exists\n");
+        if (!categoryRepository.findCategoryByRequestedIdOrName(createRequest.getRequestedID(), createRequest.getName()).isEmpty()) {
+            throw new EntityExistsException("Category already exists");
         }
 
         Category category = new Category();
@@ -38,8 +40,8 @@ public class CategoryServiceImpl {
         return category.getId();
     }
 
-    public void deleteCategory(Long id) throws NoEntityException, CategoryIsLinkedException {
-        Category categoryFromDB = categoryRepository.findById(id).orElseThrow(() -> new NoEntityException("No such category"));
+    public void deleteCategory(Long id) throws NoSuchElementException, CategoryIsLinkedException {
+        Category categoryFromDB = categoryRepository.findById(id).orElseThrow(() -> new NoSuchElementException("No such category"));
         if (!bannerRepository.findByCategoriesContainingAndDeletedFalse(categoryFromDB).isEmpty()) {
             throw new CategoryIsLinkedException("Can't delete category");
         }
@@ -48,11 +50,11 @@ public class CategoryServiceImpl {
     }
 
 
-    public Long updateCategory(CategoryRequest updateRequest, Long id) throws NoEntityException, EntityExistsException {
+    public Long updateCategory(CategoryRequest updateRequest, Long id) throws NoSuchElementException, EntityExistsException {
         Category updating = categoryRepository.findByIdAndDeletedFalse(id)
-                .orElseThrow(() -> new NoEntityException("No such category"));
+                .orElseThrow(() -> new NoSuchElementException("No such category"));
 
-        if (isCategoryWithSuchNameOrRequestIdExists(updating, updateRequest.getName(), updateRequest.getRequestedID())) {
+        if (categoryRepository.findCategoryByRequestedIdOrName(updateRequest.getRequestedID(), updateRequest.getName()).size() > 1) {
             throw new EntityExistsException("Category already exists");
         }
 
@@ -67,11 +69,8 @@ public class CategoryServiceImpl {
         return categoryRepository.findById(id).orElseThrow(() -> new NoSuchElementException("No category with such id"));
     }
 
-    public List<Category> findByNamePart(String namePart) {
-        return categoryRepository.findCategoriesByName(namePart);
-    }
-
-    private boolean isCategoryWithSuchNameOrRequestIdExists(Category category, String name, String requestId) {
-        return category != categoryRepository.findCategoryByRequestedIdOrName(requestId, name).orElse(category);
+    public List<CategoryDto> findByNamePart(String namePart) {
+        return categoryRepository.findCategoriesByName(namePart).stream().map(CategoryMapper::toDto).
+                collect(Collectors.toList());
     }
 }
